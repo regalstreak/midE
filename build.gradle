@@ -19,7 +19,7 @@ allprojects {
             url 'https://github.com/regalstreak/USB-MIDI-Driver/raw/prerelease/MIDIDriver/snapshots'
         }
         maven {
-            url 'https://github.com/kshoji/BLE-MIDI-for-Android/raw/master/library/repository'
+            url 'https://github.com/kshoji/BLE-MIDI-for-Android/raw/develop/library/repository'
         }
         maven { url 'https://jitpack.io' }
         mavenCentral()

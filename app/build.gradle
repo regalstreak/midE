@@ -36,8 +36,6 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
-//    implementation 'jp.kshoji:midi-driver:0.1.4:@aar'
-//    implementation 'com.github.regalstreak:USB-MIDI-Driver:prerelease-SNAPSHOT'
     implementation 'jp.kshoji:midi-driver:0.1.7-prerelease:@aar'
-    implementation 'jp.kshoji:ble-midi:0.0.9:@aar'
+    implementation 'jp.kshoji:ble-midi:0.0.11:@aar'
 }

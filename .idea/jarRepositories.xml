@@ -51,5 +51,10 @@
       <option name="name" value="maven2" />
       <option name="url" value="https://github.com/kshoji/BLE-MIDI-for-Android/raw/master/library/repository" />
     </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven2" />
+      <option name="name" value="maven2" />
+      <option name="url" value="https://github.com/kshoji/BLE-MIDI-for-Android/raw/develop/library/repository" />
+    </remote-repository>
   </component>
 </project>
