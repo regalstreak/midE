@@ -12,6 +12,20 @@ buildscript {
     }
 }
 
+allprojects {
+    repositories {
+        google()
+        maven {
+            url 'https://github.com/regalstreak/USB-MIDI-Driver/raw/prerelease/MIDIDriver/snapshots'
+        }
+        maven {
+            url 'https://github.com/kshoji/BLE-MIDI-for-Android/raw/master/library/repository'
+        }
+        maven { url 'https://jitpack.io' }
+        mavenCentral()
+    }
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
