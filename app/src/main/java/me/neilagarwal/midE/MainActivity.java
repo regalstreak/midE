@@ -7,43 +7,50 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import jp.kshoji.blemidi.central.BleMidiCentralProvider;
 import jp.kshoji.blemidi.listener.OnMidiDeviceAttachedListener;
 import jp.kshoji.blemidi.listener.OnMidiDeviceDetachedListener;
 import jp.kshoji.blemidi.peripheral.BleMidiPeripheralProvider;
 import jp.kshoji.driver.midi.activity.AbstractSingleMidiActivity;
 import jp.kshoji.driver.midi.device.MidiInputDevice;
 import jp.kshoji.driver.midi.device.MidiOutputDevice;
+import me.neilagarwal.midE.databinding.ActivityMainBinding;
 
 public class MainActivity extends AbstractSingleMidiActivity {
 
     BleMidiPeripheralProvider bleMidiPeripheralProvider;
-    TextView textView;
-    Button button;
+    BleMidiCentralProvider bleMidiCentralProvider;
+
     jp.kshoji.blemidi.device.MidiOutputDevice midiOutputDevice;
+
+
+   ActivityMainBinding binding;
 
     boolean advertising = false;
     boolean isBleOutputConnected = false;
 
-    String deviceName = "BLE Device";
-    String deviceManufacturer = "BLE Manufacturer";
+    String usbMidiDeviceName = "[none]";
+    String bleMidiDeviceName = "[none]";
 
     // this field belongs to the UI thread
     final Handler uiThreadEventHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
-            if ("note on".equals(msg.obj)) {
-                textView.setText("note on event received." + msg.obj.toString());
+            // USB Device Name
+            if (msg.what == 0) {
+                binding.usbMidiDeviceName.setText("USB In/Out: " + usbMidiDeviceName);
             }
-            Log.v("testing", msg.obj.toString() + "testing");
+
+            // BLE Device Name
+            if(msg.what == 1) {
+                binding.bleMidiDeviceName.setText("BLE Out: " + midiOutputDevice.getDeviceName());
+            }
 
             // message handled successfully
             return true;
@@ -54,9 +61,9 @@ public class MainActivity extends AbstractSingleMidiActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        textView = findViewById(R.id.testing);
-        button = findViewById(R.id.button);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        View view = binding.getRoot();
+        setContentView(view);
 
         if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_ADVERTISE) == PackageManager.PERMISSION_DENIED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -67,20 +74,23 @@ public class MainActivity extends AbstractSingleMidiActivity {
 
 
         bleMidiPeripheralProvider = new BleMidiPeripheralProvider(this);
-        bleMidiPeripheralProvider.setDeviceName(deviceName);
-        bleMidiPeripheralProvider.setManufacturer(deviceManufacturer);
+        bleMidiPeripheralProvider.setDeviceName(usbMidiDeviceName);
+        bleMidiPeripheralProvider.setManufacturer("midE");
 
-        button.setOnClickListener(new View.OnClickListener() {
+        bleMidiCentralProvider = new BleMidiCentralProvider(this);
+
+
+        binding.button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!advertising) {
                     bleMidiPeripheralProvider.startAdvertising();
                     advertising = true;
-                    button.setText("Stop Advertising");
+                    binding.button.setText("Stop Advertising");
                 } else {
                     bleMidiPeripheralProvider.stopAdvertising();
                     advertising = false;
-                    button.setText("Start Advertising");
+                    binding.button.setText("Start Advertising");
                 }
             }
         });
@@ -95,6 +105,10 @@ public class MainActivity extends AbstractSingleMidiActivity {
             public void onMidiOutputDeviceAttached(@NonNull jp.kshoji.blemidi.device.MidiOutputDevice localMidiOutputDevice) {
                 midiOutputDevice = localMidiOutputDevice;
                 isBleOutputConnected = true;
+                bleMidiDeviceName = midiOutputDevice.getDeviceName();
+
+
+                uiThreadEventHandler.sendMessage(Message.obtain(uiThreadEventHandler, 1));
             }
         });
 
@@ -124,12 +138,12 @@ public class MainActivity extends AbstractSingleMidiActivity {
 
     @Override
     public void onMidiOutputDeviceAttached(@NonNull MidiOutputDevice midiOutputDevice) {
-
+        usbMidiDeviceName = midiOutputDevice.getProductName();
+        uiThreadEventHandler.sendMessage(Message.obtain(uiThreadEventHandler, 0));
     }
 
     @Override
     public void onDeviceDetached(@NonNull UsbDevice usbDevice) {
-
     }
 
     @Override
@@ -139,7 +153,8 @@ public class MainActivity extends AbstractSingleMidiActivity {
 
     @Override
     public void onMidiOutputDeviceDetached(@NonNull MidiOutputDevice midiOutputDevice) {
-
+        usbMidiDeviceName = "[none]";
+        uiThreadEventHandler.sendMessage(Message.obtain(uiThreadEventHandler, 0));
     }
 
     @Override
