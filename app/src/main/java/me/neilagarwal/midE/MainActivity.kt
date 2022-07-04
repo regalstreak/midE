@@ -7,11 +7,11 @@ import android.hardware.usb.UsbDevice
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material.Button
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.material.composethemeadapter.MdcTheme
 import jp.kshoji.blemidi.central.BleMidiCentralProvider
 import jp.kshoji.blemidi.device.MidiInputDevice
@@ -49,7 +49,11 @@ class MainActivity : AbstractSingleMidiActivity() {
 
     private fun checkAndAskForPermissions() {
         val permissions =
-            arrayOf(Manifest.permission.BLUETOOTH_ADVERTISE, Manifest.permission.BLUETOOTH_SCAN);
+            arrayOf(
+                Manifest.permission.BLUETOOTH_ADVERTISE,
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            );
         if (!hasPermissions(this, *permissions)) {
             ActivityCompat.requestPermissions(this, permissions, 1);
         }
@@ -69,6 +73,19 @@ class MainActivity : AbstractSingleMidiActivity() {
             )
             Text(
                 text = "BLE Out: ${model.bleMidiDevicename}",
+            )
+            Button(onClick = {
+                model.testing = bleMidiCentralProvider!!.midiOutputDevices.count().toString()
+            }) {
+                Text("Get device name")
+            }
+            Button(onClick = {
+                bleMidiCentralProvider!!.startScanDevice(30000)
+            }) {
+                Text("Scan")
+            }
+            Text(
+                text = "Device name: ${model.testing}"
             )
         }
     }
@@ -99,7 +116,35 @@ class MainActivity : AbstractSingleMidiActivity() {
 
     private fun setupBleCentralProvider() {
         bleMidiCentralProvider = BleMidiCentralProvider(this)
-        bleMidiCentralProvider!!.startScanDevice(30000)
+        // Listener for Device disconnection
+        bleMidiCentralProvider!!.setRequestPairing(true)
+        bleMidiCentralProvider!!.setOnMidiDeviceAttachedListener(object :
+            OnMidiDeviceAttachedListener {
+            override fun onMidiInputDeviceAttached(midiInputDevice: MidiInputDevice) {
+                // attach the MIDI Input Listener
+//                midiInputDevice.setOnMidiInputEventListener(onMidiInputEventListener)
+
+                // TODO process event
+            }
+
+            override fun onMidiOutputDeviceAttached(midiOutputDevice: MidiOutputDevice) {
+                // TODO process event
+            }
+        })
+
+// Listener for Device disconnection
+
+// Listener for Device disconnection
+        bleMidiCentralProvider!!.setOnMidiDeviceDetachedListener(object :
+            OnMidiDeviceDetachedListener {
+            override fun onMidiInputDeviceDetached(midiInputDevice: MidiInputDevice) {
+                // TODO process event
+            }
+
+            override fun onMidiOutputDeviceDetached(midiOutputDevice: MidiOutputDevice) {
+                // TODO process event
+            }
+        })
 
     }
 

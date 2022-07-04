@@ -10,4 +10,6 @@ class MainViewModel: ViewModel() {
 
     var usbMidiDeviceName by mutableStateOf(noDeviceDeviceName)
     var bleMidiDevicename by mutableStateOf(noDeviceDeviceName)
+
+    var testing by mutableStateOf("testing")
 }
